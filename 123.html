@@ -2,12 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Car Plate Recognition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/opencv/4.5.2/opencv.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 </head>
 <body>
-    <p id="demo">風嬸婆請按下</p>
-    <button type="button" onclick="document.getElementById('demo').innerHTML = '親愛的風嬸婆 我要金金' ">按我</button>
-    
+    <input type="file" id="fileInput" accept="image/*"><br>
+    <button id="recognizeButton">開始辨識</button>
+    <canvas id="canvas"></canvas>
+    <div id="result"></div>
+
+    <script>
+        let img, src, gray, thresh, contours, hierarchy;
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = () => {
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+                src = cv.imread(canvas);
+                gray = new cv.Mat();
+                cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+                thresh = new cv.Mat();
+                cv.threshold(gray, thresh, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
+                contours = new cv.MatVector();
+                hierarchy = new cv.Mat();
+                cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+            };
+        });
+
+        document.getElementById('recognizeButton').addEventListener('click', () => {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            let resultText = '';
+            for (let i = 0; i < contours.size(); i++) {
+                const rect = cv.boundingRect(contours.get(i));
+                if (rect.width > rect.height * 2) { // Simple filter for plate shape
+                    ctx.strokeStyle = 'green';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                    const roi = gray.roi(rect);
+                    const plateNumber = recognizePlate(roi); // Dummy function
+                    resultText += `Plate Number: ${plateNumber} `;
+                }
+            }
+            document.getElementById('result').innerText = resultText;
+            // Clean up
+            src.delete();
+            gray.delete();
+            thresh.delete();
+            contours.delete();
+            hierarchy.delete();
+        });
+
+        function recognizePlate(roi) {
+            // Placeholder function - replace this with actual character recognition logic
+            return "ABC1234";
+        }
+    </script>
 </body>
 </html>
