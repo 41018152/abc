@@ -9,7 +9,8 @@
 <body>
     <input type="file" id="fileInput" accept="image/*"><br>
     <button id="recognizeButton">開始辨識</button>
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas"></canvas><br>
+    <output id="output"></output>
     <div id="result"></div>
 
     <script>
@@ -52,6 +53,7 @@
                 }
             }
             document.getElementById('result').innerText = resultText;
+            document.getElementById('output').appendChild(canvas);
             // Clean up
             src.delete();
             gray.delete();
